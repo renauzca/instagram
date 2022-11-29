@@ -6,7 +6,7 @@ const {
   DB_USER, DB_PASSWORD, DB_HOST,
 } = process.env;
 
-const sequelize = new Sequelize(`postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/insta`, {
+const sequelize = new Sequelize(`postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/instagram`, {
   logging: false, // set to console.log to see the raw SQL queries
   native: false, // lets Sequelize know we can use pg-native for ~30% more speed
 });
@@ -30,10 +30,23 @@ sequelize.models = Object.fromEntries(capsEntries);
 
 // En sequelize.models están todos los modelos importados como propiedades
 // Para relacionarlos hacemos un destructuring
-const { Insta } = sequelize.models;
+const { User, Publicaciones, Comentarios, Historia, Historiasmejoresamigos } = sequelize.models;
 
 // Aca vendrian las relaciones
 // Product.hasMany(Reviews);
+User.hasMany(Historiasmejoresamigos)
+
+User.belongsToMany(Publicaciones, { through: "user_publicaciones" })
+Publicaciones.belongsToMany(User, { through: "user_publicaciones" })
+
+Comentarios.belongsToMany(Publicaciones, { through: "publicacion_comentarios" })
+
+User.belongsToMany(Comentarios, { through: "user_comentarios" })
+Comentarios.belongsToMany(User, { through: "user_comentarios" })
+
+Historia.hasOne(Comentarios, { through: "user_mejores" })
+
+Historiasmejoresamigos.belongsToMany(Comentarios, { through: "user_Historiasmejoresamigos" })
 
 module.exports = {
   ...sequelize.models, // para poder importar los modelos así: const { Product, User } = require('./db.js');
